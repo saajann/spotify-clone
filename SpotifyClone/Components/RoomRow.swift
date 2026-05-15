@@ -1,54 +1,94 @@
-//
-//  RoomRow.swift
-//  SpotifyClone
-//
-//  Created by Saajan Saini on 15/05/26.
-//
+// RoomRow.swift
+// SpotifyClone
 
 import SwiftUI
 
 struct RoomRow: View {
     let room: Room
+    @State private var pulse = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+        ZStack(alignment: .topTrailing) {
+            // Background gradient
+            RoundedRectangle(cornerRadius: 14)
+                .fill(LinearGradient(
+                    colors: room.currentMood.gradient.map { $0.opacity(0.45) } + [Color.spotifyDarkGray.opacity(0.8)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(room.currentMood.accentColor.opacity(0.25), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    // Live badge
+                    if room.isLive {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 6, height: 6)
+                                .scaleEffect(pulse ? 1.3 : 0.8)
+                                .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: pulse)
+                            Text("LIVE")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundColor(.red)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.red.opacity(0.15))
+                        .clipShape(Capsule())
+                    }
+
+                    Spacer()
+
+                    // Mood emoji badge
+                    Text(room.currentMood.emoji)
+                        .font(.title3)
+                }
+
+                // Room name
                 Text(room.name)
-                    .font(.headline)
-                    .foregroundColor(.spotifyWhite)
-                Spacer()
-                Text(room.mood.uppercased())
-                    .font(.caption.bold())
-                    .foregroundColor(.spotifyGreen)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.spotifyGreen.opacity(0.15))
-                    .clipShape(Capsule())
-            }
+                    .font(.headline.weight(.bold))
+                    .foregroundColor(.white)
 
-            HStack {
-                Image(systemName: "music.note")
-                    .font(.caption)
-                    .foregroundColor(.spotifyGreen)
-                Text(room.currentSong.title)
-                    .font(.subheadline)
-                    .foregroundColor(.spotifyLightGray)
-                Text("•")
-                    .foregroundColor(.spotifyLightGray)
-                Text(room.currentSong.artist)
-                    .font(.subheadline)
-                    .foregroundColor(.spotifyLightGray)
-            }
+                // Currently playing
+                HStack(spacing: 6) {
+                    Image(systemName: "music.note")
+                        .font(.caption)
+                        .foregroundColor(room.currentMood.accentColor)
+                    Text("\(room.currentSong.title) · \(room.currentSong.artist)")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.75))
+                        .lineLimit(1)
+                }
 
-            HStack {
-                Image(systemName: "person.2.fill")
-                    .font(.caption)
-                    .foregroundColor(.spotifyLightGray)
-                Text("\(room.users.count) people")
-                    .font(.caption)
-                    .foregroundColor(.spotifyLightGray)
+                // Footer
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2.fill")
+                            .font(.caption2)
+                        Text("\(room.listenerCount) listening")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.white.opacity(0.6))
+
+                    Spacer()
+
+                    // Mood tag
+                    Text(room.currentMood.rawValue)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(room.currentMood.accentColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(room.currentMood.accentColor.opacity(0.15))
+                        .clipShape(Capsule())
+                }
             }
+            .padding(14)
         }
-        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .onAppear { pulse = true }
     }
 }
