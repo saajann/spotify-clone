@@ -6,6 +6,7 @@ import SwiftUI
 struct RoomsListView: View {
     @EnvironmentObject var player: PlayerViewModel
     @State private var selectedFilter: VibeMood? = nil
+    @State private var showCreateAlert = false
 
     var filteredRooms: [Room] {
         guard let filter = selectedFilter else { return MockData.rooms }
@@ -60,6 +61,7 @@ struct RoomsListView: View {
 
                         // Create Room button
                         Button {
+                            showCreateAlert = true
                         } label: {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
@@ -73,6 +75,11 @@ struct RoomsListView: View {
                             .background(Color.spotifyGreen)
                             .clipShape(Capsule())
                             .padding(.horizontal)
+                        }
+                        .alert("Room Creation Protocol", isPresented: $showCreateAlert) {
+                            Button("Got it!", role: .cancel) { }
+                        } message: {
+                            Text("This feature is currently a prototype. Real room creation involves selecting a mood, setting spatial audio parameters, and inviting friends!")
                         }
 
                         Spacer(minLength: 100)

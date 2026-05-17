@@ -15,6 +15,7 @@ class RoomViewModel: ObservableObject {
     @Published var progress: Double = 0.28
 
     private var emojiCounter = 0
+    private var progressTimer: AnyCancellable?
 
     struct FloatingEmoji: Identifiable {
         let id: Int
@@ -28,6 +29,7 @@ class RoomViewModel: ObservableObject {
         self.room = room
         updateMoodVoteCounts()
         simulateIncomingReactions()
+        startProgressTimer()
     }
 
     // MARK: - Mood Voting
@@ -73,6 +75,33 @@ class RoomViewModel: ObservableObject {
         room.djQueue[idx].votes += 1
         room.djQueue[idx].hasVoted = true
         room.djQueue.sort { $0.votes > $1.votes }
+    }
+    
+    // MARK: - Playback Controls
+    private func startProgressTimer() {
+        progressTimer = Timer.publish(every: 1.0, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self = self, self.isPlaying else { return }
+                withAnimation(.linear(duration: 1.0)) {
+                    self.progress += 0.005 // Simulate progress
+                    if self.progress >= 1.0 {
+                        self.progress = 0
+                    }
+                }
+            }
+    }
+    
+    func skipForward() {
+        withAnimation {
+            progress = min(1.0, progress + 0.1)
+        }
+    }
+    
+    func skipBackward() {
+        withAnimation {
+            progress = max(0.0, progress - 0.1)
+        }
     }
 
     // MARK: - Simulate incoming reactions (for realism)

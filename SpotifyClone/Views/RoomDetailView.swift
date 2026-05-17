@@ -90,7 +90,7 @@ struct RoomDetailView: View {
 
             Spacer()
 
-            Button { } label: {
+            ShareLink(item: "Join my Vibe Room: \(vm.room.name) on SpotifyClone!") {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
@@ -168,11 +168,11 @@ struct RoomDetailView: View {
 
                 // Play controls (DJ only in real app — here always shown)
                 HStack(spacing: 32) {
-                    Button { } label: {
+                    Button { vm.skipBackward() } label: {
                         Image(systemName: "backward.fill").font(.system(size: 22)).foregroundColor(.white.opacity(0.7))
                     }
                     PlayPauseButton(isPlaying: $vm.isPlaying, size: 60, color: vm.room.currentMood.accentColor)
-                    Button { } label: {
+                    Button { vm.skipForward() } label: {
                         Image(systemName: "forward.fill").font(.system(size: 22)).foregroundColor(.white.opacity(0.7))
                     }
                 }
