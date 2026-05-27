@@ -448,6 +448,7 @@ struct RoomDetailView: View {
                 .disabled(chatInputText.isEmpty)
             }
             .padding(16)
+            .padding(.bottom, 90)
             .background(Color.spotifyBlack.opacity(0.8))
         }
     }
