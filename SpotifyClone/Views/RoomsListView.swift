@@ -6,11 +6,38 @@ import SwiftUI
 struct RoomsListView: View {
     @EnvironmentObject var player: PlayerViewModel
     @State private var selectedFilter: VibeMood? = nil
-    @State private var showCreateAlert = false
+    @State private var showCreateRoom = false
+    @State private var searchText = ""
+    @State private var joinedRoomIDs: Set<UUID> = []
+    @State private var userCreatedRooms: [Room] = []
+    @State private var showJoinConfirm = false
+    @State private var roomToJoin: Room? = nil
+
+    var allRooms: [Room] {
+        MockData.rooms + userCreatedRooms
+    }
 
     var filteredRooms: [Room] {
-        guard let filter = selectedFilter else { return MockData.rooms }
-        return MockData.rooms.filter { $0.currentMood == filter }
+        var result = allRooms
+
+        if let filter = selectedFilter {
+            result = result.filter { $0.currentMood == filter }
+        }
+
+        if !searchText.isEmpty {
+            result = result.filter {
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                $0.currentMood.rawValue.localizedCaseInsensitiveContains(searchText) ||
+                $0.currentSong.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.currentSong.artist.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        return result
+    }
+
+    var liveCount: Int {
+        filteredRooms.filter { $0.isLive }.count
     }
 
     var body: some View {
@@ -19,10 +46,13 @@ struct RoomsListView: View {
                 Color.spotifyBlack.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 16) {
 
-                        // Hero Banner
+                        // Hero Banner with Create button
                         heroBanner
+
+                        // Search bar
+                        searchBar
 
                         // Mood Filter chips
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -42,44 +72,40 @@ struct RoomsListView: View {
                         // Live rooms label
                         HStack {
                             Circle().fill(Color.red).frame(width: 7, height: 7)
-                            Text("\(filteredRooms.filter { $0.isLive }.count) rooms live now")
+                            Text("\(liveCount) rooms live now")
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(.spotifyLightGray)
                         }
                         .padding(.horizontal)
 
                         // Room cards
-                        LazyVStack(spacing: 14) {
-                            ForEach(filteredRooms) { room in
-                                NavigationLink(destination: RoomDetailView(room: room).environmentObject(player)) {
-                                    RoomRow(room: room)
-                                        .padding(.horizontal)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
+                        if filteredRooms.isEmpty {
+                            emptyState
+                        } else {
+                            LazyVStack(spacing: 14) {
+                                ForEach(filteredRooms) { room in
+                                    let isJoined = joinedRoomIDs.contains(room.id)
 
-                        // Create Room button
-                        Button {
-                            showCreateAlert = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 20))
-                                Text("Create a Room")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    if isJoined {
+                                        NavigationLink(destination: RoomDetailView(room: room, onLeave: {
+                                            withAnimation { _ = joinedRoomIDs.remove(room.id) }
+                                        }).environmentObject(player)) {
+                                            RoomRow(room: room, isJoined: true)
+                                                .padding(.horizontal)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
+                                        Button {
+                                            roomToJoin = room
+                                            showJoinConfirm = true
+                                        } label: {
+                                            RoomRow(room: room, isJoined: false)
+                                                .padding(.horizontal)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
                             }
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.spotifyGreen)
-                            .clipShape(Capsule())
-                            .padding(.horizontal)
-                        }
-                        .alert("Room Creation Protocol", isPresented: $showCreateAlert) {
-                            Button("Got it!", role: .cancel) { }
-                        } message: {
-                            Text("This feature is currently a prototype. Real room creation involves selecting a mood, setting spatial audio parameters, and inviting friends!")
                         }
 
                         Spacer(minLength: 100)
@@ -90,12 +116,32 @@ struct RoomsListView: View {
             .navigationTitle("Vibe Rooms")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+
+            .sheet(isPresented: $showCreateRoom) {
+                CreateRoomView { newRoom in
+                    withAnimation(.spring()) {
+                        userCreatedRooms.insert(newRoom, at: 0)
+                        _ = joinedRoomIDs.insert(newRoom.id)
+                    }
+                }
+            }
+            .alert("Join Room?", isPresented: $showJoinConfirm, presenting: roomToJoin) { room in
+                Button("Join") {
+                    withAnimation(.spring()) {
+                        _ = joinedRoomIDs.insert(room.id)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: { room in
+                Text("Join \"\(room.name)\" and start listening with \(room.listenerCount) others?")
+            }
             .fullScreenCover(isPresented: $player.showNowPlaying) {
                 NowPlayingView().environmentObject(player)
             }
         }
     }
 
+    // MARK: - Hero Banner
     private var heroBanner: some View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 16)
@@ -106,17 +152,98 @@ struct RoomsListView: View {
                 ))
                 .frame(height: 140)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("🌐 Listen Together")
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundColor(.white)
-                Text("Join a Vibe Room and share the moment.")
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.8))
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("🌐 Listen Together")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(.white)
+                    Text("Join a Vibe Room and share the moment.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+
+                Spacer()
+
+                // Create room button in banner
+                Button {
+                    showCreateRoom = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 14, weight: .bold))
+                        Text("Create")
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.white)
+                    .clipShape(Capsule())
+                }
             }
             .padding(20)
         }
         .padding(.horizontal)
+    }
+
+    // MARK: - Search Bar
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15))
+                .foregroundColor(.spotifyLightGray)
+
+            TextField("Search rooms...", text: $searchText)
+                .font(.system(size: 15))
+                .foregroundColor(.white)
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.spotifyLightGray)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.spotifyDarkGray)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal)
+    }
+
+    // MARK: - Empty State
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "waveform.badge.magnifyingglass")
+                .font(.system(size: 40))
+                .foregroundColor(.white.opacity(0.3))
+            Text("No rooms found")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(.white.opacity(0.5))
+            Text("Try a different search or create your own room")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.35))
+
+            Button {
+                showCreateRoom = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16))
+                    Text("Create Room")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color.spotifyGreen)
+                .clipShape(Capsule())
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
     }
 }
 

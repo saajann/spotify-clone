@@ -55,10 +55,28 @@ struct RoomUser: Identifiable {
     let id = UUID()
     let name: String
     let avatar: String   // SF Symbol
+    let profileImageURL: String
     let isDJ: Bool
     var moodVote: String? // emoji vote
     // Spatial position angle (0-360) around the circle
     var angle: Double
+}
+
+// MARK: - Chat Message
+struct ChatMessage: Identifiable {
+    let id = UUID()
+    let userName: String
+    let text: String
+    let timestamp: String
+    let isMe: Bool
+}
+
+// MARK: - Song Vote Option
+struct SongVoteOption: Identifiable {
+    let id = UUID()
+    let song: Song
+    var voteCount: Int
+    var hasVoted: Bool = false
 }
 
 // MARK: - DJ Queue Item
@@ -80,4 +98,6 @@ struct Room: Identifiable {
     var djQueue: [QueueItem]
     let isLive: Bool
     let listenerCount: Int
+    var chatMessages: [ChatMessage]
+    var songVoteOptions: [SongVoteOption]
 }

@@ -1,21 +1,17 @@
 // RoomDetailView.swift
 // SpotifyClone
-//
-// 🌐 VIBE ROOMS — Innovative Features:
-//   1. Mood Ring AI — animated rotating gradient ring that represents the collective mood
-//   2. Spatial Avatar Circle — users positioned in a circle, DJ in center with crown + pulse
-//   3. Live Floating Reactions — emoji burst up from bottom, auto-generated + user-triggered
-//   4. Democratic DJ Queue — anyone proposes songs, vote to rank them, top song plays next
-//   5. Mood Voting Panel — cast an emoji vote that contributes to the collective mood display
 
 import SwiftUI
 
 struct RoomDetailView: View {
     let room: Room
+    var onLeave: (() -> Void)? = nil
+    
     @EnvironmentObject var player: PlayerViewModel
     @StateObject private var vm: RoomViewModel
     @State private var activeTab: RoomTab = .room
     @Environment(\.dismiss) var dismiss
+    @State private var chatInputText: String = ""
 
     enum RoomTab: String, CaseIterable {
         case room = "Room"
@@ -23,8 +19,9 @@ struct RoomDetailView: View {
         case chat = "Chat"
     }
 
-    init(room: Room) {
+    init(room: Room, onLeave: (() -> Void)? = nil) {
         self.room = room
+        self.onLeave = onLeave
         _vm = StateObject(wrappedValue: RoomViewModel(room: room))
     }
 
@@ -63,6 +60,11 @@ struct RoomDetailView: View {
         }
         .navigationBarHidden(true)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $vm.showSuggestSongSheet) {
+            SuggestSongView { song in
+                vm.suggestSong(song)
+            }
+        }
     }
 
     // MARK: - Top Bar
@@ -90,10 +92,13 @@ struct RoomDetailView: View {
 
             Spacer()
 
-            ShareLink(item: "Join my Vibe Room: \(vm.room.name) on SpotifyClone!") {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white)
+            Button {
+                onLeave?()
+                dismiss()
+            } label: {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 18))
+                    .foregroundColor(.red)
             }
         }
         .padding(.horizontal, 20)
@@ -199,10 +204,40 @@ struct RoomDetailView: View {
                 }
                 .font(.system(size: 13))
 
-                // MARK: Mood Voting Panel
-                moodVotingPanel
+                // Suggest Song Button
+                Button {
+                    vm.showSuggestSongSheet = true
+                } label: {
+                    HStack {
+                        Image(systemName: "music.note.list")
+                        Text("Suggest a Song")
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(vm.room.currentMood.accentColor.opacity(0.4), lineWidth: 1)
+                    )
+                }
+                .padding(.top, 8)
+                
+                if vm.songSuggestionConfirmed {
+                    Text("Suggested: \(vm.suggestedSongName)")
+                        .font(.caption)
+                        .foregroundColor(vm.room.currentMood.accentColor)
+                        .transition(.opacity)
+                }
 
-                // MARK: Reaction Bar
+                // Vote Next Song Section
+                if !vm.songVoteOptions.isEmpty {
+                    voteNextSongPanel
+                }
+
+                // Reaction Bar
                 reactionBar
 
                 Spacer(minLength: 80)
@@ -211,58 +246,86 @@ struct RoomDetailView: View {
         }
     }
 
-    // MARK: - Mood Voting Panel
-    private var moodVotingPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    // MARK: - Vote Next Song Panel
+    private var voteNextSongPanel: some View {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Image(systemName: "waveform.path.ecg")
+                Image(systemName: "list.number")
                     .foregroundColor(vm.room.currentMood.accentColor)
-                Text("Collective Mood")
-                    .font(.system(size: 15, weight: .bold))
+                Text("Vote Next Song")
+                    .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
-                Text("AI Analyzed")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(vm.room.currentMood.accentColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(vm.room.currentMood.accentColor.opacity(0.15))
-                    .clipShape(Capsule())
-            }
-
-            // Vote bars
-            let totalVotes = max(1, vm.moodVoteCount.values.reduce(0, +))
-            ForEach(Array(vm.moodVoteCount.sorted(by: { $0.value > $1.value }).prefix(4)), id: \.key) { emoji, count in
-                HStack(spacing: 10) {
-                    Text(emoji).font(.system(size: 18))
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(0.1)).frame(height: 8)
-                            Capsule()
-                                .fill(vm.room.currentMood.accentColor)
-                                .frame(width: geo.size.width * CGFloat(count) / CGFloat(totalVotes), height: 8)
-                        }
-                    }
-                    .frame(height: 8)
-                    Text("\(count)").font(.caption).foregroundColor(.white.opacity(0.6)).frame(width: 20)
+                if vm.hasVotedNextSong {
+                    Text("Voted")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(vm.room.currentMood.accentColor)
+                        .clipShape(Capsule())
                 }
             }
 
-            // My vote row
-            HStack(spacing: 8) {
-                Text("Your vote:")
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.6))
-                ForEach(["🌊", "🔥", "🧠", "🎉", "💫", "🫧"], id: \.self) { emoji in
+            VStack(spacing: 12) {
+                ForEach(vm.songVoteOptions) { option in
                     Button {
-                        vm.castMoodVote(emoji)
+                        vm.voteForNextSong(id: option.id)
                     } label: {
-                        Text(emoji)
-                            .font(.system(size: 22))
-                            .padding(6)
-                            .background(vm.myVote == emoji ? Color.white.opacity(0.2) : Color.clear)
-                            .clipShape(Circle())
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(LinearGradient(colors: option.song.albumGradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Image(systemName: "play.fill")
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .font(.caption)
+                                )
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(option.song.title)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                Text(option.song.artist)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .lineLimit(1)
+                            }
+
+                            Spacer()
+
+                            if vm.hasVotedNextSong {
+                                Text("\(Int(vm.votePercentage(for: option) * 100))%")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(option.hasVoted ? vm.room.currentMood.accentColor : .white.opacity(0.7))
+                            } else {
+                                Circle()
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                    .frame(width: 20, height: 20)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color.white.opacity(0.05))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(option.hasVoted ? vm.room.currentMood.accentColor : Color.clear, lineWidth: 2)
+                        )
+                        .overlay(
+                            GeometryReader { geo in
+                                if vm.hasVotedNextSong {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(vm.room.currentMood.accentColor.opacity(0.15))
+                                        .frame(width: geo.size.width * CGFloat(vm.votePercentage(for: option)))
+                                        .animation(.spring(response: 0.6), value: vm.hasVotedNextSong)
+                                }
+                            }
+                            , alignment: .leading
+                        )
                     }
+                    .buttonStyle(.plain)
+                    .disabled(vm.hasVotedNextSong)
                 }
             }
         }
@@ -331,20 +394,128 @@ struct RoomDetailView: View {
         }
     }
 
-    // MARK: - Chat Tab (decorative)
+    // MARK: - Chat Tab
     private var chatContent: some View {
-        VStack {
-            Spacer()
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 44))
-                .foregroundColor(.white.opacity(0.3))
-            Text("Live Chat")
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.5))
-            Text("Chat with everyone in the room")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.35))
-            Spacer()
+        VStack(spacing: 0) {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(vm.chatMessages) { message in
+                            ChatBubble(message: message, room: vm.room)
+                                .id(message.id)
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: vm.chatMessages.count) {
+                    if let lastMessage = vm.chatMessages.last {
+                        withAnimation {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                }
+                .onAppear {
+                    if let lastMessage = vm.chatMessages.last {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+
+            // Chat Input
+            HStack(spacing: 12) {
+                TextField("Say something...", text: $chatInputText)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(20)
+                    .foregroundColor(.white)
+                    .font(.system(size: 15))
+                    .submitLabel(.send)
+                    .onSubmit {
+                        sendMessage()
+                    }
+
+                Button {
+                    sendMessage()
+                } label: {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(chatInputText.isEmpty ? .white.opacity(0.3) : vm.room.currentMood.accentColor)
+                        .padding(10)
+                        .background(Color.white.opacity(0.05))
+                        .clipShape(Circle())
+                }
+                .disabled(chatInputText.isEmpty)
+            }
+            .padding(16)
+            .background(Color.spotifyBlack.opacity(0.8))
+        }
+    }
+
+    private func sendMessage() {
+        guard !chatInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        vm.sendChatMessage(chatInputText)
+        chatInputText = ""
+    }
+}
+
+// MARK: - Chat Bubble
+private struct ChatBubble: View {
+    let message: ChatMessage
+    let room: Room
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            if message.isMe {
+                Spacer()
+            } else {
+                // Avatar for others
+                if let user = room.users.first(where: { $0.name == message.userName }) {
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(
+                                colors: [Color(hex: user.profileImageURL), Color(hex: user.profileImageURL).opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 28, height: 28)
+                        
+                        Text(String(user.name.prefix(1)).uppercased())
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                } else {
+                    Circle()
+                        .fill(Color.gray)
+                        .frame(width: 28, height: 28)
+                        .overlay(Text(String(message.userName.prefix(1)).uppercased()).font(.system(size: 11, weight: .bold)).foregroundColor(.white))
+                }
+            }
+
+            VStack(alignment: message.isMe ? .trailing : .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    if !message.isMe {
+                        Text(message.userName)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    Text(message.timestamp)
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+
+                Text(message.text)
+                    .font(.system(size: 15))
+                    .foregroundColor(message.isMe ? .black : .white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(message.isMe ? room.currentMood.accentColor : Color.white.opacity(0.1))
+                    .cornerRadius(16)
+            }
+
+            if !message.isMe {
+                Spacer()
+            }
         }
     }
 }
@@ -405,5 +576,101 @@ struct BounceButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.82 : 1.0)
             .animation(.spring(response: 0.25, dampingFraction: 0.5), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Suggest Song View
+struct SuggestSongView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var searchText = ""
+    var onSuggest: (Song) -> Void
+
+    var filteredSongs: [Song] {
+        if searchText.isEmpty {
+            return MockData.songs
+        } else {
+            return MockData.songs.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.artist.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.spotifyBlack.ignoresSafeArea()
+
+                VStack {
+                    // Search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.white.opacity(0.5))
+                        TextField("Search for a song...", text: $searchText)
+                            .foregroundColor(.white)
+                            .font(.system(size: 16))
+                        if !searchText.isEmpty {
+                            Button {
+                                searchText = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.white.opacity(0.5))
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(10)
+                    .padding()
+
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(filteredSongs) { song in
+                                HStack {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(LinearGradient(colors: song.albumGradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .frame(width: 48, height: 48)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(song.title)
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        Text(song.artist)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        onSuggest(song)
+                                        dismiss()
+                                    } label: {
+                                        Text("Suggest")
+                                            .font(.system(size: 13, weight: .bold))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Color.white.opacity(0.1))
+                                            .foregroundColor(.white)
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
+                        .padding(.bottom, 20)
+                    }
+                }
+            }
+            .navigationTitle("Suggest a Song")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.white)
+                }
+            }
+        }
     }
 }

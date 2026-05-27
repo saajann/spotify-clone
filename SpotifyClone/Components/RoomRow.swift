@@ -5,6 +5,7 @@ import SwiftUI
 
 struct RoomRow: View {
     let room: Room
+    var isJoined: Bool = false
     @State private var pulse = false
 
     var body: some View {
@@ -18,7 +19,7 @@ struct RoomRow: View {
                 ))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(room.currentMood.accentColor.opacity(0.25), lineWidth: 1)
+                        .stroke(room.currentMood.accentColor.opacity(isJoined ? 0.6 : 0.25), lineWidth: isJoined ? 1.5 : 1)
                 )
 
             VStack(alignment: .leading, spacing: 10) {
@@ -38,6 +39,20 @@ struct RoomRow: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(Color.red.opacity(0.15))
+                        .clipShape(Capsule())
+                    }
+
+                    if isJoined {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 10))
+                            Text("JOINED")
+                                .font(.system(size: 10, weight: .black))
+                        }
+                        .foregroundColor(.spotifyGreen)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.spotifyGreen.opacity(0.15))
                         .clipShape(Capsule())
                     }
 
@@ -64,17 +79,21 @@ struct RoomRow: View {
                         .lineLimit(1)
                 }
 
-                // Footer
+                // Stacked user avatars + footer
                 HStack {
+                    // Stacked avatars
+                    stackedAvatars
+
+                    Spacer()
+
+                    // Listener count
                     HStack(spacing: 4) {
                         Image(systemName: "person.2.fill")
                             .font(.caption2)
-                        Text("\(room.listenerCount) listening")
+                        Text("\(room.listenerCount)")
                             .font(.caption2)
                     }
                     .foregroundColor(.white.opacity(0.6))
-
-                    Spacer()
 
                     // Mood tag
                     Text(room.currentMood.rawValue)
@@ -90,5 +109,54 @@ struct RoomRow: View {
         }
         .frame(maxWidth: .infinity)
         .onAppear { pulse = true }
+    }
+
+    private var stackedAvatars: some View {
+        let displayUsers = Array(room.users.prefix(5))
+        let overflow = room.users.count - displayUsers.count
+
+        return HStack(spacing: -8) {
+            ForEach(Array(displayUsers.enumerated()), id: \.element.id) { index, user in
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: avatarGradient(for: user.profileImageURL),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 28, height: 28)
+
+                    Text(String(user.name.prefix(1)).uppercased())
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                .overlay(
+                    Circle()
+                        .stroke(Color.spotifyDarkGray, lineWidth: 2)
+                )
+                .zIndex(Double(displayUsers.count - index))
+            }
+
+            if overflow > 0 {
+                ZStack {
+                    Circle()
+                        .fill(Color.spotifyMidGray)
+                        .frame(width: 28, height: 28)
+
+                    Text("+\(overflow)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                .overlay(
+                    Circle()
+                        .stroke(Color.spotifyDarkGray, lineWidth: 2)
+                )
+            }
+        }
+    }
+
+    private func avatarGradient(for hex: String) -> [Color] {
+        let base = Color(hex: hex)
+        return [base, base.opacity(0.6)]
     }
 }

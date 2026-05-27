@@ -59,7 +59,7 @@ private struct AvatarBubble: View {
 
                 Circle()
                     .fill(LinearGradient(
-                        colors: user.isDJ ? mood.gradient : [Color.spotifyMidGray, Color.spotifyDarkGray],
+                        colors: avatarGradient(for: user.profileImageURL),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ))
@@ -78,6 +78,12 @@ private struct AvatarBubble: View {
                 }
             }
 
+            // Name label
+            Text(user.name)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+                .lineLimit(1)
+
             // Mood vote bubble
             if let vote = user.moodVote {
                 Text(vote)
@@ -88,5 +94,10 @@ private struct AvatarBubble: View {
             }
         }
         .onAppear { if user.isDJ { pulse = true } }
+    }
+
+    private func avatarGradient(for hex: String) -> [Color] {
+        let base = Color(hex: hex)
+        return [base, base.opacity(0.6)]
     }
 }

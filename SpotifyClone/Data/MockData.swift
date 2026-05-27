@@ -250,67 +250,107 @@ struct MockData {
             currentMood: .lofi,
             currentSong: songs[0],
             users: [
-                RoomUser(name: "alex_m", avatar: "person.fill", isDJ: true, moodVote: "🌙", angle: 0),
-                RoomUser(name: "sofia", avatar: "person.fill", isDJ: false, moodVote: "💙", angle: 72),
-                RoomUser(name: "marco_t", avatar: "person.fill", isDJ: false, moodVote: "🌊", angle: 144),
-                RoomUser(name: "yuki", avatar: "person.fill", isDJ: false, moodVote: "🌙", angle: 216),
-                RoomUser(name: "priya", avatar: "person.fill", isDJ: false, moodVote: nil, angle: 288),
+                RoomUser(name: "alex_m", avatar: "person.fill", profileImageURL: "4ECDC4", isDJ: true, moodVote: "🌙", angle: 0),
+                RoomUser(name: "sofia", avatar: "person.fill", profileImageURL: "FF6B6B", isDJ: false, moodVote: "💙", angle: 72),
+                RoomUser(name: "marco_t", avatar: "person.fill", profileImageURL: "45B7D1", isDJ: false, moodVote: "🌊", angle: 144),
+                RoomUser(name: "yuki", avatar: "person.fill", profileImageURL: "FFEAA7", isDJ: false, moodVote: "🌙", angle: 216),
+                RoomUser(name: "priya", avatar: "person.fill", profileImageURL: "DDA0DD", isDJ: false, moodVote: nil, angle: 288),
             ],
             djQueue: [
                 QueueItem(song: songs[8], proposedBy: "sofia", votes: 12),
                 QueueItem(song: songs[3], proposedBy: "marco_t", votes: 7),
                 QueueItem(song: songs[14], proposedBy: "yuki", votes: 4),
             ],
-            isLive: true, listenerCount: 247
+            isLive: true, listenerCount: 247,
+            chatMessages: [
+                ChatMessage(userName: "sofia", text: "this track hits different at 2am 🌙", timestamp: "11:42 PM", isMe: false),
+                ChatMessage(userName: "marco_t", text: "vibes are immaculate rn", timestamp: "11:43 PM", isMe: false),
+                ChatMessage(userName: "alex_m", text: "glad you guys are here ✨", timestamp: "11:44 PM", isMe: false),
+                ChatMessage(userName: "yuki", text: "can we keep this energy going?", timestamp: "11:45 PM", isMe: false),
+                ChatMessage(userName: "sofia", text: "who added this song? it's perfect", timestamp: "11:46 PM", isMe: false),
+                ChatMessage(userName: "priya", text: "the weeknd never misses 🔥", timestamp: "11:47 PM", isMe: false),
+                ChatMessage(userName: "marco_t", text: "facts!! after hours is a masterpiece", timestamp: "11:48 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[14], voteCount: 45),
+                SongVoteOption(song: songs[8], voteCount: 32),
+                SongVoteOption(song: songs[18], voteCount: 23),
+            ]
         ),
         Room(
             name: "Friday Energy 🔥",
             currentMood: .hype,
             currentSong: songs[6],
             users: [
-                RoomUser(name: "DJ_Max", avatar: "person.fill", isDJ: true, moodVote: "🔥", angle: 0),
-                RoomUser(name: "lisa99", avatar: "person.fill", isDJ: false, moodVote: "🔥", angle: 60),
-                RoomUser(name: "carlos", avatar: "person.fill", isDJ: false, moodVote: "🎉", angle: 120),
-                RoomUser(name: "nadia", avatar: "person.fill", isDJ: false, moodVote: "🔥", angle: 180),
-                RoomUser(name: "tom_k", avatar: "person.fill", isDJ: false, moodVote: nil, angle: 240),
-                RoomUser(name: "zee", avatar: "person.fill", isDJ: false, moodVote: "💃", angle: 300),
+                RoomUser(name: "DJ_Max", avatar: "person.fill", profileImageURL: "FF8C42", isDJ: true, moodVote: "🔥", angle: 0),
+                RoomUser(name: "lisa99", avatar: "person.fill", profileImageURL: "F1948A", isDJ: false, moodVote: "🔥", angle: 60),
+                RoomUser(name: "carlos", avatar: "person.fill", profileImageURL: "82E0AA", isDJ: false, moodVote: "🎉", angle: 120),
+                RoomUser(name: "nadia", avatar: "person.fill", profileImageURL: "F7DC6F", isDJ: false, moodVote: "🔥", angle: 180),
+                RoomUser(name: "tom_k", avatar: "person.fill", profileImageURL: "85C1E9", isDJ: false, moodVote: nil, angle: 240),
+                RoomUser(name: "zee", avatar: "person.fill", profileImageURL: "BB8FCE", isDJ: false, moodVote: "💃", angle: 300),
             ],
             djQueue: [
                 QueueItem(song: songs[10], proposedBy: "lisa99", votes: 31),
                 QueueItem(song: songs[4], proposedBy: "carlos", votes: 18),
                 QueueItem(song: songs[7], proposedBy: "nadia", votes: 9),
             ],
-            isLive: true, listenerCount: 1284
+            isLive: true, listenerCount: 1284,
+            chatMessages: [
+                ChatMessage(userName: "DJ_Max", text: "FRIDAY NIGHT LET'S GOOOO 🔥🔥", timestamp: "9:00 PM", isMe: false),
+                ChatMessage(userName: "lisa99", text: "the energy in here is unmatched", timestamp: "9:01 PM", isMe: false),
+                ChatMessage(userName: "carlos", text: "turn it up!! 🔊", timestamp: "9:02 PM", isMe: false),
+                ChatMessage(userName: "nadia", text: "this song makes me wanna dance 💃", timestamp: "9:03 PM", isMe: false),
+                ChatMessage(userName: "zee", text: "best room on the app fr fr", timestamp: "9:04 PM", isMe: false),
+                ChatMessage(userName: "tom_k", text: "just joined, what did I miss?", timestamp: "9:05 PM", isMe: false),
+                ChatMessage(userName: "DJ_Max", text: "you missed the warmup but we're just getting started 😎", timestamp: "9:06 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[4], voteCount: 67),
+                SongVoteOption(song: songs[10], voteCount: 54),
+                SongVoteOption(song: songs[7], voteCount: 31),
+            ]
         ),
         Room(
             name: "Deep Focus 🧠",
             currentMood: .focus,
             currentSong: songs[18],
             users: [
-                RoomUser(name: "devguru", avatar: "person.fill", isDJ: true, moodVote: "🧠", angle: 0),
-                RoomUser(name: "anna_s", avatar: "person.fill", isDJ: false, moodVote: "✨", angle: 90),
-                RoomUser(name: "kai", avatar: "person.fill", isDJ: false, moodVote: "🎧", angle: 180),
-                RoomUser(name: "elena", avatar: "person.fill", isDJ: false, moodVote: "🧠", angle: 270),
+                RoomUser(name: "devguru", avatar: "person.fill", profileImageURL: "96CEB4", isDJ: true, moodVote: "🧠", angle: 0),
+                RoomUser(name: "anna_s", avatar: "person.fill", profileImageURL: "AED6F1", isDJ: false, moodVote: "✨", angle: 90),
+                RoomUser(name: "kai", avatar: "person.fill", profileImageURL: "D7BDE2", isDJ: false, moodVote: "🎧", angle: 180),
+                RoomUser(name: "elena", avatar: "person.fill", profileImageURL: "A3E4D7", isDJ: false, moodVote: "🧠", angle: 270),
             ],
             djQueue: [
                 QueueItem(song: songs[19], proposedBy: "anna_s", votes: 6),
                 QueueItem(song: songs[13], proposedBy: "kai", votes: 3),
             ],
-            isLive: true, listenerCount: 89
+            isLive: true, listenerCount: 89,
+            chatMessages: [
+                ChatMessage(userName: "devguru", text: "perfect study music 📚", timestamp: "3:00 PM", isMe: false),
+                ChatMessage(userName: "anna_s", text: "finally found a room where I can concentrate", timestamp: "3:05 PM", isMe: false),
+                ChatMessage(userName: "kai", text: "🤫 (keeping it quiet)", timestamp: "3:10 PM", isMe: false),
+                ChatMessage(userName: "elena", text: "this playlist is chef's kiss for coding", timestamp: "3:15 PM", isMe: false),
+                ChatMessage(userName: "devguru", text: "silk sonic always hits different when you're in the zone", timestamp: "3:20 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[19], voteCount: 18),
+                SongVoteOption(song: songs[13], voteCount: 14),
+                SongVoteOption(song: songs[3], voteCount: 9),
+            ]
         ),
         Room(
             name: "Pop Party 🎉",
             currentMood: .party,
             currentSong: songs[1],
             users: [
-                RoomUser(name: "popqueen", avatar: "person.fill", isDJ: true, moodVote: "🎉", angle: 0),
-                RoomUser(name: "bea_f", avatar: "person.fill", isDJ: false, moodVote: "💃", angle: 45),
-                RoomUser(name: "riko", avatar: "person.fill", isDJ: false, moodVote: "🎊", angle: 90),
-                RoomUser(name: "ines", avatar: "person.fill", isDJ: false, moodVote: "🎉", angle: 135),
-                RoomUser(name: "jake", avatar: "person.fill", isDJ: false, moodVote: nil, angle: 180),
-                RoomUser(name: "mia", avatar: "person.fill", isDJ: false, moodVote: "🔥", angle: 225),
-                RoomUser(name: "sam", avatar: "person.fill", isDJ: false, moodVote: "🎊", angle: 270),
-                RoomUser(name: "leo", avatar: "person.fill", isDJ: false, moodVote: "💃", angle: 315),
+                RoomUser(name: "popqueen", avatar: "person.fill", profileImageURL: "F8C471", isDJ: true, moodVote: "🎉", angle: 0),
+                RoomUser(name: "bea_f", avatar: "person.fill", profileImageURL: "FAD7A0", isDJ: false, moodVote: "💃", angle: 45),
+                RoomUser(name: "riko", avatar: "person.fill", profileImageURL: "ABB2B9", isDJ: false, moodVote: "🎊", angle: 90),
+                RoomUser(name: "ines", avatar: "person.fill", profileImageURL: "F0B27A", isDJ: false, moodVote: "🎉", angle: 135),
+                RoomUser(name: "jake", avatar: "person.fill", profileImageURL: "98D8C8", isDJ: false, moodVote: nil, angle: 180),
+                RoomUser(name: "mia", avatar: "person.fill", profileImageURL: "FF6B6B", isDJ: false, moodVote: "🔥", angle: 225),
+                RoomUser(name: "sam", avatar: "person.fill", profileImageURL: "4ECDC4", isDJ: false, moodVote: "🎊", angle: 270),
+                RoomUser(name: "leo", avatar: "person.fill", profileImageURL: "45B7D1", isDJ: false, moodVote: "💃", angle: 315),
             ],
             djQueue: [
                 QueueItem(song: songs[2], proposedBy: "bea_f", votes: 44),
@@ -318,22 +358,107 @@ struct MockData {
                 QueueItem(song: songs[16], proposedBy: "ines", votes: 11),
                 QueueItem(song: songs[17], proposedBy: "mia", votes: 5),
             ],
-            isLive: true, listenerCount: 3721
+            isLive: true, listenerCount: 3721,
+            chatMessages: [
+                ChatMessage(userName: "popqueen", text: "HARRY STYLES FANS RISE UP 👑", timestamp: "8:00 PM", isMe: false),
+                ChatMessage(userName: "bea_f", text: "as it was is literally my anthem", timestamp: "8:01 PM", isMe: false),
+                ChatMessage(userName: "riko", text: "who's going to the concert next month?!", timestamp: "8:02 PM", isMe: false),
+                ChatMessage(userName: "ines", text: "me me me!! 🙋‍♀️", timestamp: "8:03 PM", isMe: false),
+                ChatMessage(userName: "mia", text: "this room always has the best vibes", timestamp: "8:04 PM", isMe: false),
+                ChatMessage(userName: "jake", text: "can we get some taylor swift next?", timestamp: "8:05 PM", isMe: false),
+                ChatMessage(userName: "sam", text: "seconded!! anti-hero please 🙏", timestamp: "8:06 PM", isMe: false),
+                ChatMessage(userName: "leo", text: "the queue is looking fire tonight 🔥", timestamp: "8:07 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[2], voteCount: 89),
+                SongVoteOption(song: songs[16], voteCount: 72),
+                SongVoteOption(song: songs[12], voteCount: 45),
+            ]
         ),
         Room(
             name: "Romantic Evening 💫",
             currentMood: .romantic,
             currentSong: songs[18],
             users: [
-                RoomUser(name: "lover_x", avatar: "person.fill", isDJ: true, moodVote: "💫", angle: 0),
-                RoomUser(name: "rose_m", avatar: "person.fill", isDJ: false, moodVote: "💗", angle: 120),
-                RoomUser(name: "dante", avatar: "person.fill", isDJ: false, moodVote: "💫", angle: 240),
+                RoomUser(name: "lover_x", avatar: "person.fill", profileImageURL: "FFB3C6", isDJ: true, moodVote: "💫", angle: 0),
+                RoomUser(name: "rose_m", avatar: "person.fill", profileImageURL: "DDA0DD", isDJ: false, moodVote: "💗", angle: 120),
+                RoomUser(name: "dante", avatar: "person.fill", profileImageURL: "F1948A", isDJ: false, moodVote: "💫", angle: 240),
             ],
             djQueue: [
                 QueueItem(song: songs[11], proposedBy: "rose_m", votes: 8),
                 QueueItem(song: songs[9], proposedBy: "dante", votes: 5),
             ],
-            isLive: false, listenerCount: 43
+            isLive: false, listenerCount: 43,
+            chatMessages: [
+                ChatMessage(userName: "lover_x", text: "silk sonic is pure romance 💫", timestamp: "10:00 PM", isMe: false),
+                ChatMessage(userName: "rose_m", text: "this room is so cozy 🕯️", timestamp: "10:05 PM", isMe: false),
+                ChatMessage(userName: "dante", text: "dedicated to everyone listening tonight ❤️", timestamp: "10:10 PM", isMe: false),
+                ChatMessage(userName: "lover_x", text: "leave the door open is the perfect song for this mood", timestamp: "10:15 PM", isMe: false),
+                ChatMessage(userName: "rose_m", text: "whoever made this room, thank you 🙏", timestamp: "10:20 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[11], voteCount: 22),
+                SongVoteOption(song: songs[1], voteCount: 18),
+                SongVoteOption(song: songs[15], voteCount: 12),
+            ]
+        ),
+        Room(
+            name: "Sad Hours 🫧",
+            currentMood: .sad,
+            currentSong: songs[14],
+            users: [
+                RoomUser(name: "melancholy_kid", avatar: "person.fill", profileImageURL: "90CAF9", isDJ: true, moodVote: "🫧", angle: 0),
+                RoomUser(name: "rainy_daze", avatar: "person.fill", profileImageURL: "B39DDB", isDJ: false, moodVote: "💙", angle: 90),
+                RoomUser(name: "luna_m", avatar: "person.fill", profileImageURL: "80DEEA", isDJ: false, moodVote: "🌧️", angle: 180),
+                RoomUser(name: "quiet_storm", avatar: "person.fill", profileImageURL: "CE93D8", isDJ: false, moodVote: "🫧", angle: 270),
+            ],
+            djQueue: [
+                QueueItem(song: songs[7], proposedBy: "rainy_daze", votes: 14),
+                QueueItem(song: songs[9], proposedBy: "luna_m", votes: 8),
+            ],
+            isLive: true, listenerCount: 156,
+            chatMessages: [
+                ChatMessage(userName: "melancholy_kid", text: "this song understands me 💔", timestamp: "10:15 PM", isMe: false),
+                ChatMessage(userName: "rainy_daze", text: "it's one of those nights...", timestamp: "10:16 PM", isMe: false),
+                ChatMessage(userName: "luna_m", text: "sending virtual hugs to everyone here 🫂", timestamp: "10:17 PM", isMe: false),
+                ChatMessage(userName: "quiet_storm", text: "olivia rodrigo hits different when it rains", timestamp: "10:18 PM", isMe: false),
+                ChatMessage(userName: "rainy_daze", text: "the room name really checks out huh", timestamp: "10:19 PM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[9], voteCount: 38),
+                SongVoteOption(song: songs[7], voteCount: 29),
+                SongVoteOption(song: songs[14], voteCount: 18),
+            ]
+        ),
+        Room(
+            name: "Workout Beast 💪",
+            currentMood: .hype,
+            currentSong: songs[10],
+            users: [
+                RoomUser(name: "gym_rat", avatar: "person.fill", profileImageURL: "EF5350", isDJ: true, moodVote: "🔥", angle: 0),
+                RoomUser(name: "iron_mike", avatar: "person.fill", profileImageURL: "FF7043", isDJ: false, moodVote: "💪", angle: 72),
+                RoomUser(name: "cardio_queen", avatar: "person.fill", profileImageURL: "EC407A", isDJ: false, moodVote: "🔥", angle: 144),
+                RoomUser(name: "lift_heavy", avatar: "person.fill", profileImageURL: "AB47BC", isDJ: false, moodVote: "💪", angle: 216),
+                RoomUser(name: "runner_x", avatar: "person.fill", profileImageURL: "42A5F5", isDJ: false, moodVote: nil, angle: 288),
+            ],
+            djQueue: [
+                QueueItem(song: songs[4], proposedBy: "iron_mike", votes: 22),
+                QueueItem(song: songs[6], proposedBy: "cardio_queen", votes: 15),
+            ],
+            isLive: true, listenerCount: 412,
+            chatMessages: [
+                ChatMessage(userName: "gym_rat", text: "let's gooo 💪🔥", timestamp: "6:30 AM", isMe: false),
+                ChatMessage(userName: "iron_mike", text: "PR day today who's with me", timestamp: "6:31 AM", isMe: false),
+                ChatMessage(userName: "cardio_queen", text: "this beat is insane for running", timestamp: "6:32 AM", isMe: false),
+                ChatMessage(userName: "lift_heavy", text: "need more bass drops 🎵", timestamp: "6:33 AM", isMe: false),
+                ChatMessage(userName: "runner_x", text: "5 miles in and still going strong", timestamp: "6:34 AM", isMe: false),
+                ChatMessage(userName: "gym_rat", text: "that's the energy we need!!", timestamp: "6:35 AM", isMe: false),
+            ],
+            songVoteOptions: [
+                SongVoteOption(song: songs[10], voteCount: 52),
+                SongVoteOption(song: songs[4], voteCount: 41),
+                SongVoteOption(song: songs[6], voteCount: 28),
+            ]
         ),
     ]
 
